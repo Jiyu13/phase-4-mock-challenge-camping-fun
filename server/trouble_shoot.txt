@@ -1,0 +1,2 @@
+1. relationship() goes to the parent class
+2. ForeignKey goes to the children class
