@@ -16,10 +16,17 @@ class Camper(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
     
     # A Camper has many Signups, -> camper.signups????
-    signups = db.relationship('Signup', backref="camper")
+    signups = db.relationship('Signup', backref='camper')
 
     # A camper has many ActivityS through Signups -> camper.activities??????
-    activities = association_proxy("signups", 'activity')
+    activities = association_proxy('signups', 'activity')
+
+    # 
+    serialize_rules = ("-signups.camper", '-signups.activity',    # many-to-one
+                       "-activities.campers",                     # many-to-many
+                       '-created_at', '-updated_at',)
+
+    # serialize_rules = ('-activities.campers', -signups.activity')
 
     # Add validations to the Camper model:
     @validates("name", "age")
@@ -50,9 +57,14 @@ class Activity(db.Model, SerializerMixin):
     # An Activity has many Campers through Signups -> activity.campers
     campers = association_proxy("signups", "camper")
 
+    # still have signups, but no signups.activity/ignups.camper
+    # can set rules in to_dict(rules=('-signups',)) -> will not show signups
+    serialize_rules = ("-signups.activity", "-signups.camper", # many-to-one
+                       '-campers.activities', )                # many-to-many
+
+
 class Signup(db.Model, SerializerMixin):
     __tablename__ = 'signups'
-
    
     id = db.Column(db.Integer, primary_key=True)
     time = db.Column(db.Integer)
@@ -61,6 +73,11 @@ class Signup(db.Model, SerializerMixin):
     # A Signup belongs to a Camper and belongs to a Activity ???
     camper_id = db.Column(db.Integer, db.ForeignKey("campers.id"))
     activity_id = db.Column(db.Integer, db.ForeignKey("activities.id"))
+
+    # signup has 1 camper and one activity, so -camper.activities' and -activity.campers
+    serialize_rules = ('-camper.activities', '-activity.campers', # many-many
+                        "-camper.signups", "-activity.signups",   # one-many
+                      )  
 
 
     @validates("time")

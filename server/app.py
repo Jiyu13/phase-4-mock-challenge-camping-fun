@@ -43,46 +43,44 @@ class Campers(Resource):
                 name=request.get_json()['name'],
                 age=request.get_json()['age']
             )
-            return make_response(new_post.to_dict(), 201)
             db.session.add(new_camper)
             db.session.commit()
+            response = make_response(new_camper.to_dict(), 201)
+
         except Exception as e:
             # If the Camper is not created successfully, return the following JSON data, along with the appropriate HTTP status code:
             message = {
-                "errors": [e.__str__]
+                "errors": "invalid input"
             }
-            return make_response(message, 422)
-    
+            response = make_response(message, 422)
+        return response
 api.add_resource(Campers, '/campers')
-
 
 
 class CamperByID(Resource):
     def get(self, id):
         camper = Camper.query.filter_by(id=id).first()
         if not camper:
-            response_body = {
+            message = {
                 "error": "Camper not found"
             }
-            return make_response(response_body.to_dict(), 404)
+            return make_response(message, 404)
         return make_response(camper.to_dict(), 200)
 api.add_resource(CamperByID, '/campers/<int:id>')
 
 
-
-class Activity(Resource):
+class Activities(Resource):
     def get(self):
         activities = Activity.query.all()
         activities_dict_list = [activity.to_dict() for activity in activities]
         return make_response(activities_dict_list, 200)
-    
-api.add_resource(Activity, '/activities')
+api.add_resource(Activities, '/activities')
 
 
 class ActivityByID(Resource):
     # activity = Activity.query.filter(id == id).first()  #
     def get(self, id):
-        activity = db.session.query(Activity).filter(id == id).first()
+        activity = Activity.query.filter_by(id=id).first()
         if not activity:
             response_body = {
                 "error": "Activity not found"
@@ -91,13 +89,13 @@ class ActivityByID(Resource):
         return make_response(activity.to_dict(), 200)
 
     def delete(self, id):
-        activity = db.session.query(Activity).filter(id == id).first()
+        activity = Activity.query.filter_by(id=id).first()
         if not activity:
             # If the Activity does not exist, return the following JSON data, along with the appropriate HTTP status code:
-            response_body = {
+            message = {
                 "error": "Activity not found"
             }
-            return make_response(response_body.to_dict(), 404)
+            return make_response(message, 404)
         
         db.session.delete(activity)
         db.session.commit()
@@ -106,7 +104,12 @@ class ActivityByID(Resource):
 api.add_resource(ActivityByID, '/activities/<int:id>')
 
 
-class Signup(Resource):
+class Signups(Resource):
+    def get(self):
+        signups = Signup.query.all()
+        signups_dict = [signup.to_dict() for signup in signups]
+        return make_response(signups_dict, 200)
+
     def post(self):
         new_signup = Signup(
             time=request.get_json()['time'],
@@ -117,7 +120,7 @@ class Signup(Resource):
         return make_response(new_signup.activity.to_dict(), 201)
         
         # If the Signup is not created successfully, return the following JSON data, along with the appropriate HTTP status code:
-api.add_resource(Signup, '/signups')
+api.add_resource(Signups, '/signups')
 
 
 if __name__ == '__main__':

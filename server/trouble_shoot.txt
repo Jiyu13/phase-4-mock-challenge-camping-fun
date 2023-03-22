@@ -1,2 +1,34 @@
 1. relationship() goes to the parent class
 2. ForeignKey goes to the children class
+
+3. AttributeError: 'Camper' object has no attribute 'g'
+    Serialize rules needs ab ","
+
+
+4. 
+    normal tables:
+        joined_table = db.relationship("related_table_model", backref="current_table_singular")
+        m-m_table = association_proxy("joined_table_name", "m-m_singular")
+        serialize_rules = ("-all_many-one-relationship", "-related_many-many_table.current_table")
+            # if missing any of the many-to_one in rules, -> RecursionError: maximum recursion depth exceeded in comparison
+
+    joined tables:
+        fk1_id = db.Column(db.Integer, db.ForeignKey("fk1_table.id"))
+        fk2_id = db.Column(db.Integer, db.ForeignKey("fk2_table.id"))
+        serialize_rules = ('-all_many-many-relationship", "-all_many-one_relationship",)
+    
+    to_dict():
+        # still have joined_table -signups, but no signups.activity/ignups.camper
+        # can set rules in to_dict(rules=('-signups',)) -> will not show joined-table -> signups
+
+5. don't name the request_method class the same as the model
+    signups = Signup.query.all()
+    AttributeError: type object 'Signup' has no attribute 'query'
+
+    class Signups(Resource):
+        ...
+    
+    class Signup(db.Model):
+        ...
+
+6. 
